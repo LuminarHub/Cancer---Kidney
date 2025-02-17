@@ -1,0 +1,129 @@
+{% extends "home.html" %}
+{% block content %}
+  {% load static  %}
+    <div class="container mx-auto px-4 py-8">
+        <div class="max-w-6xl mx-auto">
+            <!-- Header -->
+            <div class="mb-8">
+                <h1 class="text-3xl font-bold text-gray-800">Prediction History</h1>
+                <p class="text-gray-600 mt-2">View and manage your previous medical predictions</p>
+            </div>
+
+            <!-- Filters -->
+            <div class="bg-white rounded-lg shadow-sm p-4 mb-6">
+                <form method="GET" class="flex flex-wrap gap-4 items-center">
+                    <div class="flex-1 min-w-[200px]">
+                        <label class="block text-sm font-medium text-gray-700 mb-1" for="date_range">Date Range</label>
+                        <select id="date_range" name="date_range" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                            <option value="7">Last 7 days</option>
+                            <option value="30">Last 30 days</option>
+                            <option value="90">Last 3 months</option>
+                            <option value="all">All time</option>
+                        </select>
+                    </div>
+                    <div class="flex-1 min-w-[200px]">
+                        <label class="block text-sm font-medium text-gray-700 mb-1" for="model_key">Model Type</label>
+                        <select id="model_key" name="model_key" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                            <option value="">All Models</option>
+                            <option value="Respiratory">Respiratory</option>
+                            <option value="Alzheimers">Alzheimers</option>
+                            <option value="Brain_tumor">Brain Tumor</option>
+                            <option value="Diabetic">Diabetic</option>
+                            <option value="Kidney">Kidney</option>
+                        </select>
+                    </div>
+                    <div class="flex-1 min-w-[200px]">
+                        <label class="block text-sm font-medium text-gray-700 mb-1" for="search">Search</label>
+                        <input type="text" id="search" name="search" placeholder="Search predictions..." class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                    </div>
+                    <div>
+                        <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
+                            Apply Filters
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- History List -->
+            <div class="bg-white rounded-lg shadow-sm overflow-hidden">
+                <div class="min-w-full divide-y divide-gray-200">
+                    <!-- Headers -->
+                    <div class="bg-gray-50">
+                        <div class="grid grid-cols-12 gap-4 px-6 py-3">
+                            <div class="col-span-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</div>
+                            <div class="col-span-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Image</div>
+                            <div class="col-span-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Model Used</div>
+                            <div class="col-span-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Result</div>
+                        </div>
+                    </div>
+
+                    <!-- History Items -->
+                    <div class="divide-y divide-gray-200">
+                        {% for history in history %}
+                        <div class="grid grid-cols-12 gap-4 px-6 py-4 hover:bg-gray-50">
+                            <div class="col-span-2 flex items-center">
+                                <span class="text-sm text-gray-900">{{ history.timestamp|date:"Y-m-d H:i" }}</span>
+                            </div>
+                            <div class="col-span-2">
+                                {% if history.image %}
+                                    <img src="{{ history.image.url }}" alt="Medical scan" class="h-16 w-16 rounded-lg object-cover"/>
+                                {% else %}
+                                    <span class="text-gray-400">No Image</span>
+                                {% endif %}
+                            </div>
+                            <div class="col-span-3 flex items-center">
+                                <span class="text-sm text-gray-900">{{ history.model_key }}</span>
+                            </div>
+                            <div class="col-span-3 flex items-center">
+                                <span class="px-2 py-1 text-sm rounded-full 
+                                    {% if history.result == 'Normal' or  history.result == 'Negative' or history.result == 'notumor' %} bg-green-100 text-green-800 
+                                    {% else %} bg-red-100 text-red-800 {% endif %}">
+                                    {{ history.result }}
+                                </span>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <div class="px-6 py-4 text-gray-500">No prediction history found.</div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Pagination -->
+                {% if history.paginator.num_pages > 1 %}
+                <div class="bg-white px-4 py-3 border-t border-gray-200 sm:px-6">
+                    <div class="flex items-center justify-between">
+                        <div class="flex-1 flex justify-between sm:hidden">
+                            {% if history.has_previous %}
+                                <a href="?page={{ history.previous_page_number }}" class="px-4 py-2 border text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                                    Previous
+                                </a>
+                            {% endif %}
+                            {% if history.has_next %}
+                                <a href="?page={{ history.next_page_number }}" class="ml-3 px-4 py-2 border text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                                    Next
+                                </a>
+                            {% endif %}
+                        </div>
+                        <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+                            <div>
+                                <p class="text-sm text-gray-700">
+                                    Showing <span class="font-medium">{{ history.start_index }}</span> to <span class="font-medium">{{ history.end_index }}</span> of <span class="font-medium">{{ history.paginator.count }}</span> results
+                                </p>
+                            </div>
+                            <div>
+                                <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px">
+                                    {% for i in history.paginator.page_range %}
+                                        <a href="?page={{ i }}" class="px-4 py-2 border {% if history.number == i %} bg-blue-50 text-blue-600 {% else %} text-gray-700 bg-white {% endif %} text-sm font-medium hover:bg-blue-100">
+                                            {{ i }}
+                                        </a>
+                                    {% endfor %}
+                                </nav>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+{% endblock %}

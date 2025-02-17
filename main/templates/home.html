@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+    
+<head>
+    {% load static %}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Medical Assistant - Home</title>
+    <link rel="shortcut icon" type="image/icon" href="{% static 'images/logo.png' %}" style="border-radius: 0.75rem;"> 
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="bg-gradient-to-br from-blue-50 to-indigo-50 min-h-screen">
+    <!-- Navigation -->
+    <nav class="bg-white shadow-lg">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <a href="{% url 'main' %}" class="flex items-center">
+                        <svg class="h-8 w-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                        </svg>
+                        <span class="ml-2 font-bold text-gray-800">AI Medical Assistant</span>
+                    </a>
+                </div>
+                <div class="flex items-center space-x-4">
+                    {% if user.is_authenticated %}
+                    <a href="{% url 'predict' %}" class="text-gray-600 hover:text-gray-900">Cancer Prediction</a>
+                    <a href="{% url 'history' %}" class="text-gray-600 hover:text-gray-900">History</a>
+                    <a href="{% url 'logout' %}" class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">Logout</a>
+                    {% else %}
+                    <a href="{% url 'login' %}" class="text-gray-600 hover:text-gray-900">Login</a>
+                    <a href="{% url 'reg' %}" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">Register</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </nav>
+{% block content %}
+    <div class="container mx-auto px-4 py-12">
+        <div class="text-center mb-16">
+            <h1 class="text-5xl font-bold text-gray-800 mb-4">Advanced Medical Diagnosis</h1>
+            <p class="text-xl text-gray-600 max-w-3xl mx-auto">Leveraging artificial intelligence to provide accurate and rapid disease detection through medical image analysis.</p>
+        </div>
+
+        <div class="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto mb-16">
+            <div class="bg-white rounded-xl shadow-lg p-6 text-center">
+                <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <svg class="h-8 w-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                </div>
+                <h3 class="text-xl font-bold mb-2">Accurate Results</h3>
+                <p class="text-gray-600">High-precision disease detection using state-of-the-art AI models.</p>
+            </div>
+            <div class="bg-white rounded-xl shadow-lg p-6 text-center">
+                <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <svg class="h-8 w-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                </div>
+                <h3 class="text-xl font-bold mb-2">Rapid Analysis</h3>
+                <p class="text-gray-600">Get instant results for your medical image analysis needs.</p>
+            </div>
+            <div class="bg-white rounded-xl shadow-lg p-6 text-center">
+                <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <svg class="h-8 w-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                    </svg>
+                </div>
+                <h3 class="text-xl font-bold mb-2">Secure Platform</h3>
+                <p class="text-gray-600">Your medical data is protected with enterprise-grade security.</p>
+            </div>
+        </div>
+
+        <div class="text-center">
+            <a href="{% url 'prediction' %}" class="inline-flex items-center bg-blue-600 text-white px-8 py-3 rounded-lg hover:bg-blue-700 transition-colors text-lg font-semibold">
+                Get Started
+                <svg class="ml-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/>
+                </svg>
+            </a>
+        </div>
+        
+    </div>
+    <!-- Disease Information Section -->
+<div class="max-w-6xl mx-auto mb-16">
+    <h2 class="text-3xl font-bold text-gray-800 text-center mb-8">Supported Medical Conditions</h2>
+    
+    <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <!-- Alzheimer's Card -->
+        <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+            <div class="bg-blue-600 px-6 py-4">
+                <h3 class="text-xl font-bold text-white">Alzheimer's Detection</h3>
+            </div>
+            <div class="p-6">
+                <p class="text-gray-600 mb-4">Detects varying stages of dementia through brain scan analysis:</p>
+                <ul class="list-disc list-inside text-gray-600 space-y-2">
+                    <li>Non Demented</li>
+                    <li>Mild Dementia</li>
+                    <li>Moderate Dementia</li>
+                    <li>Very Mild Dementia</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Brain Tumor Card -->
+        <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+            <div class="bg-blue-600 px-6 py-4">
+                <h3 class="text-xl font-bold text-white">Brain Tumor Analysis</h3>
+            </div>
+            <div class="p-6">
+                <p class="text-gray-600 mb-4">Identifies different types of brain tumors:</p>
+                <ul class="list-disc list-inside text-gray-600 space-y-2">
+                    <li>Glioma</li>
+                    <li>Meningioma</li>
+                    <li>No Tumor</li>
+                    <li>Pituitary Tumor</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Diabetic Retinopathy Card -->
+        <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+            <div class="bg-blue-600 px-6 py-4">
+                <h3 class="text-xl font-bold text-white">Diabetic Retinopathy</h3>
+            </div>
+            <div class="p-6">
+                <p class="text-gray-600 mb-4">Screens for diabetic retinopathy in eye scans:</p>
+                <ul class="list-disc list-inside text-gray-600 space-y-2">
+                    <li>Diabetic Retinopathy Present</li>
+                    <li>No Diabetic Retinopathy</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Kidney Disease Card -->
+        <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+            <div class="bg-blue-600 px-6 py-4">
+                <h3 class="text-xl font-bold text-white">Kidney Analysis</h3>
+            </div>
+            <div class="p-6">
+                <p class="text-gray-600 mb-4">Detects various kidney conditions through CT scans:</p>
+                <ul class="list-disc list-inside text-gray-600 space-y-2">
+                    <li>Kidney Cyst</li>
+                    <li>Normal Kidney</li>
+                    <li>Kidney Stone</li>
+                    <li>Kidney Tumor</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Respiratory Conditions Card -->
+        <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+            <div class="bg-blue-600 px-6 py-4">
+                <h3 class="text-xl font-bold text-white">Respiratory Analysis</h3>
+            </div>
+            <div class="p-6">
+                <p class="text-gray-600 mb-4">Identifies various respiratory conditions:</p>
+                <ul class="list-disc list-inside text-gray-600 space-y-2">
+                    <li>Bacterial Pneumonia</li>
+                    <li>COVID-19</li>
+                    <li>Normal</li>
+                    <li>Tuberculosis</li>
+                    <li>Viral Pneumonia</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Additional Info Card -->
+        <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+            <div class="bg-blue-600 px-6 py-4">
+                <h3 class="text-xl font-bold text-white">How It Works</h3>
+            </div>
+            <div class="p-6">
+                <p class="text-gray-600 mb-4">Our AI-powered system:</p>
+                <ul class="list-disc list-inside text-gray-600 space-y-2">
+                    <li>Uses advanced neural networks</li>
+                    <li>Processes high-resolution medical images</li>
+                    <li>Provides rapid analysis</li>
+                    <li>Maintains medical-grade accuracy</li>
+                    <li>Supports multiple image formats</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+    {% endblock %}
+</body>
+</html>
