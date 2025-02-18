@@ -9,4 +9,5 @@ urlpatterns = [
     path('predict/',predict,name='predict'),
     path('history/',HistoryView.as_view(),name='history'),
     path('logout/',custom_logout,name='logout'),
+    path('delete/<int:pk>/',remove_History,name='del'),
 ]

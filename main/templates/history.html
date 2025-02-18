@@ -1,6 +1,9 @@
 {% extends "home.html" %}
 {% block content %}
   {% load static  %}
+  {% comment %} <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet"> {% endcomment %}
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+
     <div class="container mx-auto px-4 py-8">
         <div class="max-w-6xl mx-auto">
             <!-- Header -->
@@ -52,8 +55,10 @@
                         <div class="grid grid-cols-12 gap-4 px-6 py-3">
                             <div class="col-span-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</div>
                             <div class="col-span-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Image</div>
-                            <div class="col-span-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Model Used</div>
-                            <div class="col-span-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Result</div>
+                            <div class="col-span-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Model Used</div>
+                            <div class="col-span-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Result</div>
+                            <div class="col-span-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"></div>
+                            <div class="col-span-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"></div>
                         </div>
                     </div>
 
@@ -71,15 +76,27 @@
                                     <span class="text-gray-400">No Image</span>
                                 {% endif %}
                             </div>
-                            <div class="col-span-3 flex items-center">
+                            <div class="col-span-2 flex items-center">
                                 <span class="text-sm text-gray-900">{{ history.model_key }}</span>
                             </div>
-                            <div class="col-span-3 flex items-center">
+                            <div class="col-span-2 flex items-center">
                                 <span class="px-2 py-1 text-sm rounded-full 
                                     {% if history.result == 'Normal' or  history.result == 'Negative' or history.result == 'notumor' %} bg-green-100 text-green-800 
                                     {% else %} bg-red-100 text-red-800 {% endif %}">
                                     {{ history.result }}
                                 </span>
+                            </div>
+                            <div class="col-span-2">
+                                {% if history.lime_image %}
+                                    <img src="{{ history.lime_image.url }}" alt="Medical scan" class="h-16 w-16 rounded-lg object-cover"/>
+                                {% else %}
+                                    <span class="text-gray-400">No Image</span>
+                                {% endif %}
+                            </div>
+                            <div class="col-span-1">
+                                <a href="{% url 'del' history.id %}" class="delete-icon" title="Delete" style="color:blue;">
+                                    <i class="fas fa-trash-alt"></i>
+                                </a>
                             </div>
                         </div>
                         {% empty %}

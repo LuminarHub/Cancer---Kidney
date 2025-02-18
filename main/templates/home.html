@@ -24,7 +24,7 @@
                 </div>
                 <div class="flex items-center space-x-4">
                     {% if user.is_authenticated %}
-                    <a href="{% url 'predict' %}" class="text-gray-600 hover:text-gray-900">Cancer Prediction</a>
+                    <a href="{% url 'predict' %}" class="text-gray-600 hover:text-gray-900">Disease Prediction</a>
                     <a href="{% url 'history' %}" class="text-gray-600 hover:text-gray-900">History</a>
                     <a href="{% url 'logout' %}" class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">Logout</a>
                     {% else %}

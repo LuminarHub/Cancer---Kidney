@@ -1,4 +1,4 @@
-from django.shortcuts import render,redirect
+from django.shortcuts import render,redirect,get_object_or_404
 from django.views.generic import TemplateView,FormView,CreateView,View
 from django.urls import reverse_lazy
 from django.contrib.auth import authenticate,login
@@ -14,6 +14,13 @@ from django.contrib.auth import logout as auth_logout
 from django.utils.timezone import now
 from datetime import timedelta
 from django.core.paginator import Paginator
+from lime import lime_image
+from skimage.segmentation import mark_boundaries
+import io
+from matplotlib import pyplot as plt
+from django.core.files.base import ContentFile
+from django.core.exceptions import ValidationError
+from django.http import HttpResponse
 
 
 class LoginView(FormView):
@@ -59,7 +66,7 @@ class HistoryView(TemplateView):
         query_params = self.request.GET
 
         # Get initial queryset
-        history_qs = History.objects.filter(user=user)
+        history_qs = History.objects.filter(user=user).order_by('-timestamp')
 
         # Filtering by date range
         date_range = query_params.get('date_range', 'all')
@@ -124,34 +131,96 @@ models = {
     }
 }
 
-# Preprocess the image for the selected model
+def normalize_image(image):
+    """Normalize image values to [0, 1] range."""
+    return image.astype('float32') / 255.0
 
-def preprocess_image(image_path, model_key):
+def check_image_format(image_path, model_key):
+    """Validate and format the input image according to model requirements."""
     model_info = models.get(model_key)
-    input_shape = model_info["input_shape"]
-
-    # Open the image
-    img = Image.open(image_path)
-
-    # Convert to RGB (force 3 channels)
-    img = img.convert("RGB")
-
-    # Resize to model's input shape
-    img = img.resize(input_shape)
-
-    # Convert to numpy array
-    img = np.array(img)
-
-    # Normalize pixel values
-    img = img / 255.0  
-
-    # Ensure correct shape (1, height, width, 3)
-    img = img.reshape(1, input_shape[0], input_shape[1], 3)
+    expected_shape = model_info["input_shape"]
     
-    return img
+    try:
+        img = Image.open(image_path)
+        img = img.convert("RGB")
+        img = img.resize(expected_shape)
+    except Exception as e:
+        raise ValidationError(f"Invalid image format or error while opening the image: {e}")
+    
+    if img.size != tuple(expected_shape):
+        raise ValidationError(f"Image dimensions do not match the expected input shape {expected_shape}. Please upload a valid image.")
+    
+    return np.array(img)
+
+def preprocess_image(imagefile, model_key):
+    """Preprocess the image for model prediction."""
+    try:
+        img_array = check_image_format(imagefile, model_key)
+        img_array = normalize_image(img_array)
+        return np.expand_dims(img_array, axis=0)
+    except ValidationError as e:
+        raise e
+
+import datetime
+import base64
+
+def explain_with_lime(image, model, model_key):
+    """Generate LIME explanation for the model's prediction."""
+    explainer = lime_image.LimeImageExplainer()
+    
+    # Normalize the input image
+    normalized_image = normalize_image(image)
+    
+    def predict_fn(images):
+        return model.predict(images)
+    
+    # Generate explanation
+    explanation = explainer.explain_instance(
+        normalized_image,
+        predict_fn,
+        top_labels=5,
+        hide_color=0,
+        num_samples=1000
+    )
+
+    # Get visualization for top predicted class
+    temp, mask = explanation.get_image_and_mask(
+        explanation.top_labels[0],
+        positive_only=False,
+        num_features=5,
+        hide_rest=False
+    )
+    
+    # Create the visualization
+    explained_image = mark_boundaries(temp, mask)
+    
+    # Convert to image file
+    buf = io.BytesIO()
+    plt.imsave(buf, explained_image)
+    buf.seek(0)
+    
+    # Convert to base64 for direct template rendering
+    image_base64 = base64.b64encode(buf.read()).decode('utf-8')
+    
+    # Generate a filename for storage
+    timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+    filename = f"lime_explanation_{model_key}_{timestamp}.png"
+    
+    # Ensure the media directory exists
+    lime_dir = os.path.join(settings.MEDIA_ROOT, 'lime_explanations')
+    os.makedirs(lime_dir, exist_ok=True)
+    
+    # Save the file
+    file_path = os.path.join(lime_dir, filename)
+    with open(file_path, 'wb') as f:
+        buf.seek(0)
+        f.write(buf.read())
+    
+    return image_base64, os.path.join('lime_explanations', filename)
 
 @login_required
 def predict(request):
+    """Handle prediction requests and return results."""
     if request.method == "POST":
         try:
             model_key = request.POST.get("model_key")
@@ -160,30 +229,50 @@ def predict(request):
             if not model_key or not imagefile:
                 return render(request, "prediction.html", {"error": "Model key and image file are required."})
 
-            img_array = preprocess_image(imagefile, model_key)
+            # Get model information
             model = models[model_key]["model"]
             class_labels = models[model_key]["class_labels"]
 
+            # Preprocess and predict
+            img_array = preprocess_image(imagefile, model_key)
             predictions = model.predict(img_array)
             class_index = np.argmax(predictions)
             confidence = predictions[0][class_index] * 100
-            # prediction_result = f"{confidence:.2f}% Confidence: {class_labels[class_index]}"
-            prediction_result = f"{class_labels[class_index]}"
+            prediction_result = class_labels[class_index]
 
+            # Generate LIME explanation
+            original_image = np.array(Image.open(imagefile).resize(models[model_key]["input_shape"]))
+            explained_image_base64, lime_path = explain_with_lime(original_image, model, model_key)
+
+            # Save prediction and explanation
             prediction = History.objects.create(
                 user=request.user,
                 model_key=model_key,
                 result=prediction_result,
                 image=imagefile,
+                lime_image=lime_path
             )
+
             return render(request, "prediction.html", {
                 "prediction": prediction_result,
+                "confidence": f"{confidence:.2f}%",
                 "image_url": prediction.image.url,
                 "user": request.user,
-                "model_key": model_key
+                "model_key": model_key,
+                "explained_image": explained_image_base64
             })
 
         except Exception as e:
             return render(request, "prediction.html", {"error": str(e)})
 
     return render(request, "prediction.html")
+
+
+def remove_History(req,pk):
+    try:
+        sub= get_object_or_404(History,id=pk)
+        sub.delete()
+        # sub.save()
+        return redirect('history')
+    except Exception as e:
+        return HttpResponse(f"An error occurred: {str(e)}", status=500)
