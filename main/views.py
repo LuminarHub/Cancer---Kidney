@@ -21,11 +21,13 @@ from matplotlib import pyplot as plt
 from django.core.files.base import ContentFile
 from django.core.exceptions import ValidationError
 from django.http import HttpResponse
+from django.contrib import messages
 
 
 class LoginView(FormView):
     template_name="login.html"
     form_class=LogForm
+    
     def post(self,request,*args,**kwargs):
         log_form=LogForm(data=request.POST)
         if log_form.is_valid():  
@@ -34,18 +36,31 @@ class LoginView(FormView):
             user=authenticate(request,username=us,password=ps)
             if user: 
                 login(request,user)
+                messages.success(request, "Login successful. Welcome back!")
                 return redirect('main')
             else:
+                messages.error(request, "Invalid username or password.")
                 return render(request,'login.html',{"form":log_form})
         else:
+            messages.error(request, "Please correct the errors below.")
             return render(request,'login.html',{"form":log_form}) 
+ 
         
 
 class RegView(CreateView):
-     form_class=UserForm
-     template_name="register.html"
-     model=CustomUser
-     success_url=reverse_lazy("login")  
+    form_class=UserForm
+    template_name="register.html"
+    model=CustomUser
+    success_url=reverse_lazy("login")
+
+    def form_valid(self, form):
+        messages.success(self.request, "Registration successful. You can now log in.")
+        return super().form_valid(form)
+
+    def form_invalid(self, form):
+        messages.error(self.request, "There was an error with your registration. Please try again.")
+        return super().form_invalid(form)
+ 
 
 
 class MainPage(TemplateView):
@@ -99,7 +114,9 @@ class HistoryView(TemplateView):
 
 def custom_logout(request):
     auth_logout(request)
+    messages.info(request, "You have been logged out.")
     return redirect('login')
+
 
 
 
@@ -227,24 +244,21 @@ def predict(request):
             imagefile = request.FILES.get("imagefile")
 
             if not model_key or not imagefile:
-                return render(request, "prediction.html", {"error": "Model key and image file are required."})
+                messages.error(request, "Model key and image file are required.")
+                return render(request, "prediction.html")
 
-            # Get model information
             model = models[model_key]["model"]
             class_labels = models[model_key]["class_labels"]
 
-            # Preprocess and predict
             img_array = preprocess_image(imagefile, model_key)
             predictions = model.predict(img_array)
             class_index = np.argmax(predictions)
             confidence = predictions[0][class_index] * 100
             prediction_result = class_labels[class_index]
 
-            # Generate LIME explanation
             original_image = np.array(Image.open(imagefile).resize(models[model_key]["input_shape"]))
             explained_image_base64, lime_path = explain_with_lime(original_image, model, model_key)
 
-            # Save prediction and explanation
             prediction = History.objects.create(
                 user=request.user,
                 model_key=model_key,
@@ -252,6 +266,8 @@ def predict(request):
                 image=imagefile,
                 lime_image=lime_path
             )
+
+            messages.success(request, f"Prediction successful! Result: {prediction_result} ({confidence:.2f}%)")
 
             return render(request, "prediction.html", {
                 "prediction": prediction_result,
@@ -263,7 +279,8 @@ def predict(request):
             })
 
         except Exception as e:
-            return render(request, "prediction.html", {"error": str(e)})
+            messages.error(request, f"Prediction failed: {str(e)}")
+            return render(request, "prediction.html")
 
     return render(request, "prediction.html")
 
@@ -272,7 +289,8 @@ def remove_History(req,pk):
     try:
         sub= get_object_or_404(History,id=pk)
         sub.delete()
-        # sub.save()
+        messages.success(req, "History entry removed successfully.")
         return redirect('history')
     except Exception as e:
-        return HttpResponse(f"An error occurred: {str(e)}", status=500)
+        messages.error(req, f"Failed to remove history: {str(e)}")
+        return redirect('history')
