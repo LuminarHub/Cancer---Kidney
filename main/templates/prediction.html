@@ -12,7 +12,7 @@
         <div class="max-w-6xl mx-auto">
             <div class="grid md:grid-cols-3 gap-8">
                 <!-- Form Section -->
-                <div class="bg-white rounded-xl shadow-lg p-6 order-3 md:order-1">
+                <div class="bg-white rounded-xl shadow-lg p-6 order-1 md:order-1">
                     {% if error %}
                     <div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-6 rounded">
                         <div class="flex">
@@ -42,7 +42,6 @@
                                 <option value="Respiratory">Respiratory Disease Classification</option>
                             </select>
                         </div>
-
                         <div>
                             <label class="block text-gray-700 font-medium mb-2">Upload Medical Image</label>
                             <div class="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-lg hover:border-blue-500 transition-colors">
@@ -80,7 +79,7 @@
                 </div>
 
                 <!-- Results Section -->
-                <div class="order-1 md:order-1">
+                <div class="order-2 md:order-2">
                     {% if prediction %}
                     <div class="bg-white rounded-xl shadow-lg p-12 space-y-6">
                         <h2 class="text-2xl font-bold text-gray-800 mb-4">Analysis Results</h2>
@@ -118,7 +117,7 @@
                     </div>
                     {% endif %}
                 </div>
-                <div class="order-1 md:order-2">
+                <div class="order-3 md:order-3">
                     {% if prediction %}
                     <div class="bg-white rounded-xl shadow-lg p-6 space-y-6">
                         <h2 class="text-2xl font-bold text-gray-800 mb-4">Analysis Results</h2>
