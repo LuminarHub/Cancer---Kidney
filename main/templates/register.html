@@ -6,7 +6,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Register - AI Medical Assistant</title>
     <link rel="shortcut icon" type="image/icon" href="{% static 'images/logo.png' %}" style="border-radius: 0.75rem;"> 
-
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
 </head>
 <body class="bg-gradient-to-br from-blue-50 to-indigo-50 min-h-screen">
@@ -32,6 +33,17 @@
 
     <!-- Main Content -->
     <div class="container mx-auto px-4 py-12">
+        {% if messages %}
+            {% for message in messages %}
+                {% if message.tags == "success" %}
+                    <div class="alert alert-success">{{ message }}</div>
+                {% elif message.tags == "error" %}
+                    <div class="alert alert-danger">{{ message }}</div>
+                {% else %}
+                    <div class="alert alert-info">{{ message }}</div>
+                {% endif %}
+            {% endfor %}
+        {% endif %}
         <div class="max-w-md mx-auto bg-white rounded-xl shadow-lg p-8">
             <div class="text-center mb-8">
                 <h2 class="text-3xl font-bold text-gray-800">Create Account</h2>
